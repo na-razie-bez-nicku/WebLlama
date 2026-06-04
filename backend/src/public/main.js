@@ -281,17 +281,3 @@ textarea.addEventListener("keydown", async (e) => {
     });
   }
 })();
-
-/*
-          <div
-            class="chat-item p-2 hover:bg-neutral-800 active:bg-neutral-700 rounded-md"
-            data-id="1"
-          >
-            Template Chat
-          </div>
-          
-          <div class="bg-neutral-500 w-5/8 ml-auto p-4 my-4 rounded-3xl">
-            This user message is only a template.
-          </div>
-          <div class="my-4">This assistant message is only a template.</div>
-          */

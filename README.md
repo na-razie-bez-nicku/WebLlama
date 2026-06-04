@@ -1,2 +1,2 @@
-# InfiniteAI
+# WebLlama
 
