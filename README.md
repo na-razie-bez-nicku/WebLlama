@@ -11,9 +11,9 @@ WebLlama is a web client for Ollama.
 - [x] Basic frontend
 - [x] Streaming LLM responses
 - [x] Markdown in LLM response
-- [ ] Saving chats and messages in DB
+- [x] Saving chats and messages in DB
 - [ ] Changing system prompt in frontend
-- [ ] Switching models in frontend (currently hardcoded in frontend)
+- [x] Switching models in frontend (currently hardcoded in frontend)
 - [ ] Interchat memory
 - [ ] Web search for LLMs
 - [ ] Executing LLM-generated code directly on the page

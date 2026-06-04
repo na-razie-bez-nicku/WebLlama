@@ -3,9 +3,11 @@ import fastifyStatic from "@fastify/static";
 import type { ChatReqPost, ChatReqGet, SendReq } from "./types.js";
 import { randomUUID } from "node:crypto";
 import Ollama from "ollama";
-
+import { prisma } from "./lib/prisma.js";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
+prisma;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,15 +36,33 @@ app.post("/api/v1/send", async (req, reply) => {
 
   console.log(chatId);
 
-  let chat = chats.get(chatId);
+  // let chat = chats.get(chatId);
 
-  if (chat == undefined) {
+  const chat = await prisma.chat.findUnique({
+    where: {
+      id: chatId,
+    },
+  });
+
+  if (!chat) {
     return reply.status(404).send({ ok: false, error: "Chat doesn't exists" });
   }
 
-  chat.lastMsg = new Date(Date.now());
+  await prisma.message.create({
+    data: { content: message, role: "user", chatId },
+  });
 
-  chat.context.push({ role: "user", content: message });
+  const context = (
+    await prisma.message.findMany({
+      where: { chatId },
+    })
+  ).map((v) => {
+    return { content: v.content, role: v.role };
+  });
+
+  // chat.lastMsg = new Date(Date.now());
+
+  // chat.context.push({ role: "user", content: message });
 
   reply.raw.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -53,7 +73,7 @@ app.post("/api/v1/send", async (req, reply) => {
   const stream = await Ollama.chat({
     model: chat.model,
     stream: true,
-    messages: chat.context,
+    messages: context,
   });
 
   let fullResponse = "";
@@ -63,44 +83,67 @@ app.post("/api/v1/send", async (req, reply) => {
     fullResponse += chunk.message.content;
   }
 
-  chat.context.push({ role: "assistant", content: fullResponse });
+  await prisma.message.create({
+    data: { chatId, content: fullResponse, role: "assistant" },
+  });
+
+  // chat.context.push({ role: "assistant", content: fullResponse });
 
   reply.raw.end();
 });
 
-app.post("/api/v1/chat", (req, reply) => {
+app.post("/api/v1/chat", async (req, reply) => {
   console.log("chat");
   const { systemprompt, model } = req.body as ChatReqPost;
 
-  const id = randomUUID();
-
-  chats.set(id, {
-    model,
-    context: systemprompt ? [{ role: "system", content: systemprompt }] : [],
-    lastMsg: new Date(Date.now()),
+  const res = await prisma.chat.create({
+    data: {
+      model,
+      system: systemprompt ?? null,
+    },
   });
-  return reply.status(201).send({ ok: true, id });
+
+  // const id = randomUUID();
+
+  // chats.set(id, {
+  //   model,
+  //   context: systemprompt ? [{ role: "system", content: systemprompt }] : [],
+  //   lastMsg: new Date(Date.now()),
+  // });
+
+  return reply.status(201).send({ ok: true, id: res.id });
 });
 
-app.get("/api/v1/chats", (req, reply) => {
+app.get("/api/v1/chats", async (req, reply) => {
+  const res = await prisma.chat.findMany({});
+
   return reply.send({
     ok: true,
-    chats: [...chats.entries()]
-      .sort((a, b) => b[1].lastMsg.getTime() - a[1].lastMsg.getTime())
-      .map(([key]) => key),
+    chats: res.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
   });
 });
 
-app.get("/api/v1/chat", (req, reply) => {
+app.get("/api/v1/chat", async (req, reply) => {
   const { chatId } = req.query as ChatReqGet;
 
-  const chat = chats.get(chatId);
+  // const chat = chats.get(chatId);
+
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    include: { messages: true },
+  });
 
   if (!chat) {
     return reply.status(404).send({ ok: false, error: "Chat doesn't exists" });
   }
 
   return reply.send({ ok: true, chat });
+});
+
+app.get("/api/v1/models", async (req, reply) => {
+  const models = await Ollama.list();
+
+  return reply.send({ ok: true, models: models.models });
 });
 
 app.get("/", (req, reply) => {
@@ -119,6 +162,6 @@ app.get("/artifacts/:id", (req, reply) => {
   return reply.sendFile("index.html");
 });
 
-app.listen({ port: 8080 }, () => {
-  console.log(`Listening on port 8080`);
+app.listen({ port: 3000, host: "0.0.0.0" }, () => {
+  console.log(`Listening on port 3000`);
 });

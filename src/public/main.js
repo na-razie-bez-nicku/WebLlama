@@ -8,6 +8,7 @@ const chats = document.getElementById("chats");
 const messages = document.getElementById("messages");
 
 const header = document.getElementById("header");
+const modelsMenu = document.getElementById("modelSelect");
 
 function autoResize(el) {
   el.style.height = "auto"; // reset
@@ -64,7 +65,7 @@ textarea.addEventListener("keydown", async (e) => {
       buffer = "";
 
       if (activeId == "new") {
-        const model = "gemma3:4b";
+        const model = modelsMenu.value;
 
         const res = await fetch("/api/v1/chat", {
           method: "POST",
@@ -89,7 +90,10 @@ textarea.addEventListener("keydown", async (e) => {
 
         div.innerText = "New Chat";
 
-        header.innerText = model;
+        header.children[0].hidden = true;
+        header.children[1].hidden = false;
+
+        header.children[1].innerText = model;
 
         chats.insertBefore(div, chats.firstChild);
 
@@ -119,6 +123,9 @@ textarea.addEventListener("keydown", async (e) => {
 
           if (activeId === "new") {
             window.history.pushState({}, "", "/");
+
+            header.children[0].hidden = true;
+            header.children[1].hidden = false;
           } else if (activeId === "artifacts") {
             window.history.pushState({}, "", "/");
           } else {
@@ -129,9 +136,12 @@ textarea.addEventListener("keydown", async (e) => {
             const resBody = await res.json();
 
             const model = resBody.chat.model;
-            const context = resBody.chat.context;
+            const context = resBody.chat.messages;
 
-            header.innerText = model;
+            header.children[0].hidden = true;
+            header.children[1].hidden = false;
+
+            header.children[1].innerText = model;
 
             for (const msg of context) {
               if (msg.role == "user") {
@@ -206,6 +216,19 @@ textarea.addEventListener("keydown", async (e) => {
 });
 
 (async () => {
+  const modelsRes = await fetch("/api/v1/models");
+
+  const models = await modelsRes.json();
+
+  for (const model of models.models) {
+    const option = document.createElement("option");
+
+    option.text = model.name;
+    option.value = model.name;
+
+    modelsMenu.appendChild(option);
+  }
+
   const chatsRes = await fetch("/api/v1/chats");
 
   const chatsInfo = await chatsRes.json();
@@ -218,9 +241,9 @@ textarea.addEventListener("keydown", async (e) => {
     div.classList =
       "chat-item p-2 hover:bg-neutral-800 active:bg-neutral-700 rounded-md";
 
-    div.dataset.id = chat;
+    div.dataset.id = chat.id;
 
-    div.innerText = "New Chat";
+    div.innerText = chat.title ?? "New Chat";
 
     chats.appendChild(div);
   }
@@ -245,6 +268,9 @@ textarea.addEventListener("keydown", async (e) => {
 
       if (activeId === "new") {
         window.history.pushState({}, "", "/");
+
+        header.children[0].hidden = false;
+        header.children[1].hidden = true;
       } else if (activeId === "artifacts") {
         window.history.pushState({}, "", "/");
       } else {
@@ -255,9 +281,12 @@ textarea.addEventListener("keydown", async (e) => {
         const resBody = await res.json();
 
         const model = resBody.chat.model;
-        const context = resBody.chat.context;
+        const context = resBody.chat.messages;
 
-        header.innerText = model;
+        header.children[0].hidden = true;
+        header.children[1].hidden = false;
+
+        header.children[1].innerText = model;
 
         for (const msg of context) {
           if (msg.role == "user") {
@@ -295,9 +324,12 @@ textarea.addEventListener("keydown", async (e) => {
       const resBody = await res.json();
 
       const model = resBody.chat.model;
-      const context = resBody.chat.context;
+      const context = resBody.chat.messages;
 
-      header.innerText = model;
+      header.children[0].hidden = true;
+      header.children[1].hidden = false;
+
+      header.children[1].innerText = model;
 
       const items = document.querySelectorAll(".chat-item");
 

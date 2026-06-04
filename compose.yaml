@@ -1,7 +1,6 @@
 # Use postgres/example user/password credentials
 
 services:
-
   db:
     image: postgres
     restart: always
@@ -14,7 +13,10 @@ services:
     #    tmpfs:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
     environment:
-      POSTGRES_PASSWORD: InfiniteAI1234
+      POSTGRES_PASSWORD: WebLLaMA1234
+
+    ports:
+      - 5432:5432
 
   adminer:
     image: adminer
