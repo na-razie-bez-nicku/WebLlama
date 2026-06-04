@@ -1,0 +1,52 @@
+/* body {
+  background: #1a1a1a;
+  color: white;
+}
+
+.app {
+  display: grid;
+  height: 100%;
+  grid-template-columns: 250px auto;
+}
+
+#sidepanel {
+  background-color: #1a1a1a;
+  border-color: #414141;
+  border-width: 1px;
+  border-style: solid;
+  height: 100%;
+} */
+
+pre {
+  padding: 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.75rem 0;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #525252;
+  margin: 16px 0;
+}
