@@ -107,6 +107,18 @@ app.get("/", (req, reply) => {
   return reply.sendFile("index.html");
 });
 
+app.get("/c/:id", (req, reply) => {
+  return reply.sendFile("index.html");
+});
+
+app.get("/artifacts", (req, reply) => {
+  return reply.sendFile("index.html");
+});
+
+app.get("/artifacts/:id", (req, reply) => {
+  return reply.sendFile("index.html");
+});
+
 app.listen({ port: 8080 }, () => {
   console.log(`Listening on port 8080`);
 });

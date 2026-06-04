@@ -1,5 +1,8 @@
 let activeId = "new";
 
+if (window.location.pathname.startsWith("/c/"))
+  activeId = window.location.pathname.substring(3);
+
 const textarea = document.getElementById("chatInput");
 const chats = document.getElementById("chats");
 const messages = document.getElementById("messages");
@@ -82,6 +85,8 @@ textarea.addEventListener("keydown", async (e) => {
 
         div.dataset.id = activeId;
 
+        window.history.pushState({}, "", `/c/${activeId}`);
+
         div.innerText = "New Chat";
 
         header.innerText = model;
@@ -113,12 +118,13 @@ textarea.addEventListener("keydown", async (e) => {
           messages.innerHTML = "";
 
           if (activeId === "new") {
-            console.log("Otwieram pusty chat (draft)");
+            window.history.pushState({}, "", "/");
           } else if (activeId === "artifacts") {
-            console.log("Otwieram menadżer artefaktów");
+            window.history.pushState({}, "", "/");
           } else {
-            console.log("Ładuję chat:", activeId);
             const res = await fetch("/api/v1/chat?chatId=" + activeId);
+
+            window.history.pushState({}, "", `/c/${activeId}`);
 
             const resBody = await res.json();
 
@@ -238,11 +244,12 @@ textarea.addEventListener("keydown", async (e) => {
       messages.innerHTML = "";
 
       if (activeId === "new") {
-        console.log("Otwieram pusty chat (draft)");
+        window.history.pushState({}, "", "/");
       } else if (activeId === "artifacts") {
-        console.log("Otwieram menadżer artefaktów");
+        window.history.pushState({}, "", "/");
       } else {
-        console.log("Ładuję chat:", activeId);
+        window.history.pushState({}, "", `/c/${activeId}`);
+
         const res = await fetch("/api/v1/chat?chatId=" + activeId);
 
         const resBody = await res.json();
@@ -279,5 +286,57 @@ textarea.addEventListener("keydown", async (e) => {
         }
       }
     });
+  }
+
+  if (activeId != "new" && activeId != "artifacts") {
+    const res = await fetch("/api/v1/chat?chatId=" + activeId);
+
+    if (res.status != 404) {
+      const resBody = await res.json();
+
+      const model = resBody.chat.model;
+      const context = resBody.chat.context;
+
+      header.innerText = model;
+
+      const items = document.querySelectorAll(".chat-item");
+
+      for (const item of items) {
+        item.classList.remove("bg-neutral-700", "font-medium");
+
+        if (item.dataset.id == activeId) {
+          item.classList.add("bg-neutral-700", "font-medium");
+        }
+      }
+
+      for (const msg of context) {
+        if (msg.role == "user") {
+          const div = document.createElement("div");
+
+          div.classList = "bg-neutral-500 w-5/8 ml-auto p-4 my-4 rounded-3xl";
+          // message = div;
+          // buffer = msg.content;
+
+          // render();
+
+          div.innerText = msg.content;
+
+          messages.appendChild(div);
+        } else if (msg.role == "assistant") {
+          const div = document.createElement("div");
+
+          div.classList = "my-4";
+          message = div;
+          buffer = msg.content;
+
+          render();
+
+          messages.appendChild(div);
+        }
+      }
+    } else {
+      alert("Error. Chat doesn't exists!");
+      window.history.pushState({}, "", "/");
+    }
   }
 })();
