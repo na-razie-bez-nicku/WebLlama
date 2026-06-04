@@ -31,6 +31,7 @@ WebLlama is a web client for Ollama.
 - [ ] Uploading files to chat:
   - [ ] Images
   - [ ] Documents (PDF, etc.)
+- [ ] User accounts
 
 ## How to run step-by-step
 1. Clone this repo:
