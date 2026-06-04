@@ -8,7 +8,7 @@ const header = document.getElementById("header");
 
 function autoResize(el) {
   el.style.height = "auto"; // reset
-  el.style.height = el.scrollHeight + "px"; // dopasuj do contentu
+  el.style.height = el.scrollHeight + "px";
 }
 
 textarea.addEventListener("input", () => autoResize(textarea));
