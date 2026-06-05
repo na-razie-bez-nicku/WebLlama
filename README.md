@@ -35,13 +35,15 @@ WebLlama is a web client for Ollama.
 
 ## How to run step-by-step
 1. Clone this repo:
-Run `git clone https://github.com/na-razie-bez-nicku/WebLlama.git` and `cd WebLlama/backend`
+Run `git clone https://github.com/na-razie-bez-nicku/WebLlama.git` and `cd WebLlama/src`.
 2. Install dependecies:
-Run `npm install` in backend directory (you must have npm and node.js installed)
+Run `npm install` in src directory (you must have npm and node.js installed).
 3. Build Typescript files:
-Run `npm run build` in backend directory
-4. Start the server:
-Run `npm run run` in backend directory.
+Run `npm run build` in src directory.
+4. Init and migrate Prisma:
+Run `cd backend` and `npx prisma init` and then `npx prisma migrate dev --name init`.
+5. Start the server:
+Run `cd ..` and `npm run run`.
 
 > [!NOTE]
 > If you want to run the server after shutdown, just type `npm run run`
