@@ -7,8 +7,6 @@ import { prisma } from "./lib/prisma.js";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-prisma;
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const chats = new Map<
@@ -69,6 +67,10 @@ app.post("/api/v1/send", async (req, reply) => {
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
   });
+
+  if (chat.system) {
+    context.unshift({ content: chat.system, role: "system" });
+  }
 
   const stream = await Ollama.chat({
     model: chat.model,

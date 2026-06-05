@@ -1,4 +1,5 @@
 let activeId = "new";
+const promptMaxSize = 250;
 
 if (window.location.pathname.startsWith("/c/"))
   activeId = window.location.pathname.substring(3);
@@ -6,13 +7,14 @@ if (window.location.pathname.startsWith("/c/"))
 const textarea = document.getElementById("chatInput");
 const chats = document.getElementById("chats");
 const messages = document.getElementById("messages");
+const systemInput = document.getElementById("systemInput");
 
 const header = document.getElementById("header");
 const modelsMenu = document.getElementById("modelSelect");
 
 function autoResize(el) {
   el.style.height = "auto"; // reset
-  el.style.height = el.scrollHeight + "px";
+  el.style.height = Math.min(el.scrollHeight, promptMaxSize) + "px";
 }
 
 textarea.addEventListener("input", () => autoResize(textarea));
@@ -63,16 +65,26 @@ textarea.addEventListener("keydown", async (e) => {
 
     if (!isEmptyOrSpaces(prompt)) {
       buffer = "";
+      systemInput.remove();
+      messages.classList.remove("flex");
 
       if (activeId == "new") {
         const model = modelsMenu.value;
+
+        let reqBody;
+
+        if (isEmptyOrSpaces(systemInput.value)) {
+          reqBody = JSON.stringify({ model });
+        } else {
+          reqBody = JSON.stringify({ model, systemprompt: systemInput.value });
+        }
 
         const res = await fetch("/api/v1/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ model }),
+          body: reqBody,
         });
 
         const body = await res.json();
@@ -126,9 +138,15 @@ textarea.addEventListener("keydown", async (e) => {
 
             header.children[0].hidden = true;
             header.children[1].hidden = false;
+            messages.appendChild(systemInput);
+            messages.classList.add("flex");
           } else if (activeId === "artifacts") {
-            window.history.pushState({}, "", "/");
+            window.history.pushState({}, "", "/artifacts");
+            systemInput.remove();
+            messages.classList.remove("flex");
           } else {
+            messages.classList.remove("flex");
+            systemInput.remove();
             const res = await fetch("/api/v1/chat?chatId=" + activeId);
 
             window.history.pushState({}, "", `/c/${activeId}`);
@@ -271,9 +289,15 @@ textarea.addEventListener("keydown", async (e) => {
 
         header.children[0].hidden = false;
         header.children[1].hidden = true;
+        messages.classList.add("flex");
+        messages.appendChild(systemInput);
       } else if (activeId === "artifacts") {
-        window.history.pushState({}, "", "/");
+        window.history.pushState({}, "", "/artifacts");
+        systemInput.remove();
+        messages.classList.remove("flex");
       } else {
+        systemInput.remove();
+        messages.classList.remove("flex");
         window.history.pushState({}, "", `/c/${activeId}`);
 
         const res = await fetch("/api/v1/chat?chatId=" + activeId);
@@ -315,6 +339,14 @@ textarea.addEventListener("keydown", async (e) => {
         }
       }
     });
+  }
+
+  if (activeId == "new") {
+    messages.appendChild(systemInput);
+    messages.classList.add("flex");
+  } else {
+    messages.classList.remove("flex");
+    systemInput.remove();
   }
 
   if (activeId != "new" && activeId != "artifacts") {
